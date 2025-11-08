@@ -31,7 +31,7 @@ interface SettingsState {
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
-  apiBaseUrl: "",
+  apiBaseUrl: "http://192.168.2.104:8887",
   m3uUrl: "",
   liveStreamSources: [],
   remoteInputEnabled: false,
@@ -43,20 +43,18 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     sources: {},
   },
   loadSettings: async () => {
-    const settings = await SettingsManager.get();
+    const DEFAULT_API_URL = "http://192.168.2.104:8887";
+    api.setBaseUrl(DEFAULT_API_URL);
     set({
-      apiBaseUrl: settings.apiBaseUrl,
-      m3uUrl: settings.m3uUrl,
-      remoteInputEnabled: settings.remoteInputEnabled || false,
-      videoSource: settings.videoSource || {
+      apiBaseUrl: DEFAULT_API_URL,
+      m3uUrl: "",
+      remoteInputEnabled: false,
+      videoSource: {
         enabledAll: true,
         sources: {},
       },
     });
-    if (settings.apiBaseUrl) {
-      api.setBaseUrl(settings.apiBaseUrl);
       await get().fetchServerConfig();
-    }
   },
   fetchServerConfig: async () => {
     set({ isLoadingServerConfig: true });
