@@ -88,7 +88,7 @@ const usePlayerStore = create<PlayerState>((set, get) => ({
     logger.info(`[PERF] PlayerStore.loadVideo START - source: ${source}, id: ${id}, title: ${title}`);
     
     let detail = useDetailStore.getState().detail;
-    let episodes: string[] = [];
+    let episodes: Episode[] = detail?.episodes || [];
     
     // 如果有detail，使用detail的source获取episodes；否则使用传入的source
     if (detail && detail.source) {
@@ -209,8 +209,8 @@ const usePlayerStore = create<PlayerState>((set, get) => ({
       
       const episodesMappingStart = performance.now();
       const mappedEpisodes = episodes.map((ep, index) => ({
-        url: ep,
-        title: `第 ${index + 1} 集`,
+      url: ep.url || '',
+      title: ep.title?.trim() || `第 ${index + 1} 课`,
       }));
       const episodesMappingEnd = performance.now();
       logger.info(`[PERF] Episodes mapping (${episodes.length} episodes) took ${(episodesMappingEnd - episodesMappingStart).toFixed(2)}ms`);
