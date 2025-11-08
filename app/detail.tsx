@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ThemedView } from "@/components/ThemedView";
@@ -11,6 +11,7 @@ import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { getCommonResponsiveStyles } from "@/utils/ResponsiveStyles";
 import ResponsiveNavigation from "@/components/navigation/ResponsiveNavigation";
 import ResponsiveHeader from "@/components/navigation/ResponsiveHeader";
+import usePlayerStore from "@/stores/playerStore"
 
 export default function DetailScreen() {
   const { q, source, id } = useLocalSearchParams<{ q: string; source?: string; id?: string }>();
@@ -42,6 +43,25 @@ export default function DetailScreen() {
       abort();
     };
   }, [abort, init, q, source, id]);
+  //新添加
+  // 👇 新增：分组相关逻辑（用于 TV/平板端）
+  const episodeGroupSize = 10;
+  const { currentEpisodeIndex: playerCurrentIndex } = usePlayerStore();
+  const [selectedEpisodeGroup, setSelectedEpisodeGroup] = useState(0);
+  
+  // 当 detail 加载完成或播放位置变化时，自动跳转到对应分组
+useEffect(() => {
+  if (detail?.episodes?.length) {
+    const index = playerCurrentIndex;
+    const safeIndex = 
+      typeof index === 'number' && isFinite(index) && index >= 0 && !isNaN(index)
+        ? index
+        : 0;
+
+    const group = Math.floor(safeIndex / episodeGroupSize);
+    setSelectedEpisodeGroup(group);
+  }
+}, [detail?.episodes?.length, playerCurrentIndex]);
 
   const handlePlay = (episodeIndex: number) => {
     if (!detail) return;
@@ -255,20 +275,60 @@ export default function DetailScreen() {
                 })}
               </View>
             </View>
-            <View style={dynamicStyles.episodesContainer}>
+			<View style={dynamicStyles.episodesContainer}>
               <ThemedText style={dynamicStyles.episodesTitle}>播放列表</ThemedText>
-              <ScrollView contentContainerStyle={dynamicStyles.episodeList}>
-                {detail.episodes.map((episode, index) => (
-                  <StyledButton
-                    key={index}
-                    style={dynamicStyles.episodeButton}
-                    onPress={() => handlePlay(index)}
-                    text={`第 ${index + 1} 集`}
-                    textStyle={dynamicStyles.episodeButtonText}
-                  />
-                ))}
-              </ScrollView>
-            </View>
+             {/* 分组导航按钮 - 仅当剧集超过 10 集时显示 */}
+               {detail.episodes.length > episodeGroupSize && (
+                 <View style={dynamicStyles.episodeGroupContainer}>
+                   {Array.from(
+                     { length: Math.ceil(detail.episodes.length / episodeGroupSize) },
+                     (_, groupIndex) => {
+                       const start = groupIndex * episodeGroupSize + 1;
+                       const end = Math.min((groupIndex + 1) * episodeGroupSize, detail.episodes.length);
+                       return (
+                         <StyledButton
+                           key={groupIndex}
+                           text={`${start}-${end}`}
+                           onPress={() => setSelectedEpisodeGroup(groupIndex)}
+                           isSelected={selectedEpisodeGroup === groupIndex}
+                           hasTVPreferredFocus={selectedEpisodeGroup === groupIndex}
+                           style={dynamicStyles.episodeGroupButton}
+                           textStyle={dynamicStyles.episodeGroupButtonText}
+                         />
+                       );
+                     }
+                   )}
+                 </View>
+               )}
+             
+               {/* 当前分组的剧集列表 */}
+               <ScrollView contentContainerStyle={dynamicStyles.episodeList}>
+                 {detail.episodes
+                   .slice(
+                     selectedEpisodeGroup * episodeGroupSize,
+                     (selectedEpisodeGroup + 1) * episodeGroupSize
+                   )
+                   .map((episode, localIndex) => {
+                     const absoluteIndex = selectedEpisodeGroup * episodeGroupSize + localIndex;
+                     const cleanTitle = episode.title?.trim() || '';
+                     const labelText = cleanTitle
+                       ? `第 ${absoluteIndex + 1} 讲：${cleanTitle}`
+                       : `第 ${absoluteIndex + 1} 讲`;
+             
+                     return (
+                       <StyledButton
+                         key={absoluteIndex}
+                         style={dynamicStyles.episodeButton}
+                         onPress={() => handlePlay(absoluteIndex)}
+                         text={labelText}
+                         numberOfLines={2}
+                         ellipsizeMode="tail"
+                         textStyle={dynamicStyles.episodeButtonText}
+                       />
+                     );
+                   })}
+               </ScrollView>
+             </View>
           </View>
         </ScrollView>
       );
@@ -376,6 +436,25 @@ const createResponsiveStyles = (deviceType: string, spacing: number) => {
       color: "#ccc",
       lineHeight: isMobile ? 18 : 22,
     },
+	// 在 StyleSheet.create({ ... }) 内部添加：
+	episodeGroupContainer: {
+	  flexDirection: "row",
+	  flexWrap: "wrap",
+	  marginBottom: spacing,
+	},
+	episodeGroupButton: {
+	  margin: isMobile ? 4 : 8,
+	  paddingHorizontal: isMobile ? 8 : 12,
+	  paddingVertical: isMobile ? 4 : 8,
+	  minWidth: isTV ? 80 : 60,
+	  justifyContent: "center",
+	  alignItems: "center",
+	},
+	episodeGroupButtonText: {
+	  color: "white",
+	  fontSize: isMobile ? 12 : isTV ? 16 : 14,
+	  textAlign: "center",
+	},
 
     // 播放源和剧集样式
     bottomContainer: {
@@ -440,6 +519,7 @@ const createResponsiveStyles = (deviceType: string, spacing: number) => {
     episodeButton: {
       margin: isMobile ? 3 : 5,
       minHeight: isMobile ? 32 : 36,
+      maxWidth: isMobile ? 200 : 230,
     },
     episodeButtonText: {
       color: "white",
