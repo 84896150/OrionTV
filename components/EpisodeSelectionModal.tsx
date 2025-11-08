@@ -8,7 +8,7 @@ interface EpisodeSelectionModalProps {}
 export const EpisodeSelectionModal: React.FC<EpisodeSelectionModalProps> = () => {
   const { showEpisodeModal, episodes, currentEpisodeIndex, playEpisode, setShowEpisodeModal } = usePlayerStore();
 
-  const [episodeGroupSize] = useState(30);
+  const [episodeGroupSize] = useState(10);
   const [selectedEpisodeGroup, setSelectedEpisodeGroup] = useState(Math.floor(currentEpisodeIndex / episodeGroupSize));
 
   const onSelectEpisode = (index: number) => {
@@ -48,19 +48,21 @@ export const EpisodeSelectionModal: React.FC<EpisodeSelectionModalProps> = () =>
               selectedEpisodeGroup * episodeGroupSize,
               (selectedEpisodeGroup + 1) * episodeGroupSize
             )}
-            numColumns={5}
+            numColumns={2}
             contentContainerStyle={styles.episodeList}
             keyExtractor={(_, index) => `episode-${selectedEpisodeGroup * episodeGroupSize + index}`}
             renderItem={({ item, index }) => {
               const absoluteIndex = selectedEpisodeGroup * episodeGroupSize + index;
               return (
                 <StyledButton
-                  text={item.title || `第 ${absoluteIndex + 1} 集`}
+                  text={`第 ${absoluteIndex + 1} 课${item.title ? `：${item.title}` : ''}`}
                   onPress={() => onSelectEpisode(absoluteIndex)}
                   isSelected={currentEpisodeIndex === absoluteIndex}
                   hasTVPreferredFocus={currentEpisodeIndex === absoluteIndex}
                   style={styles.episodeItem}
                   textStyle={styles.episodeItemText}
+                  numberOfLines={2}        // 👈 新增
+                  ellipsizeMode="tail"     // 👈 新增
                 />
               );
             }}
@@ -95,12 +97,17 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   episodeItem: {
-    paddingVertical: 2,
-    margin: 4,
-    width: "18%",
+    height: 64,  
+    //paddingVertical: 2,
+    margin: 2,
+    width: "48%",
+    justifyContent: "center", // ✅ 垂直居中，让单行文字也在视觉中心
+    paddingHorizontal: 8,   // ✅ 左右留白，避免文字贴边
   },
   episodeItemText: {
-    fontSize: 14,
+    lineHeight: 18,
+    textAlign: "left", 
+    fontSize: 13,
   },
   episodeGroupContainer: {
     flexDirection: "row",
