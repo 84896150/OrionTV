@@ -21,45 +21,26 @@ export type RowItem = (SearchResult | PlayRecord) & {
 
 export interface Category {
   title: string;
-  type?: "movie" | "tv" | "record";
+  type?: string;
   tag?: string;
   tags?: string[];
 }
 
 const initialCategories: Category[] = [
   { title: "最近播放", type: "record" },
-  { title: "热门剧集", type: "tv", tag: "热门" },
-  { title: "电视剧", type: "tv", tags: ["国产剧", "美剧", "英剧", "韩剧", "日剧", "港剧", "日本动画", "动画"] },
-  {
-    title: "电影",
-    type: "movie",
-    tags: [
-      "热门",
-      "最新",
-      "经典",
-      "豆瓣高分",
-      "冷门佳片",
-      "华语",
-      "欧美",
-      "韩国",
-      "日本",
-      "动作",
-      "喜剧",
-      "爱情",
-      "科幻",
-      "悬疑",
-      "恐怖",
-    ],
-  },
-  { title: "综艺", type: "tv", tag: "综艺" },
-  { title: "豆瓣 Top250", type: "movie", tag: "top250" },
+  { title: "同步筑基班", type: "bas", tags: ["高一", "高二", "模块学习"]},
+  { title: "同步拔高班", type: "adv", tags: ["高一", "高二"] },
+  { title: "一轮复习", type: "rev1", tag:"一轮复习" },
+  { title: "二轮复习", type: "rev2", tag:"二轮复习" },
+  { title: "冲刺班", type: "sp",tags: ["高一", "高二"]  },
+  { title: "单科通关班", type: "ssp",tags: ["0基础系列", "懒人笔记系列"] },
 ];
 
 // 添加缓存项接口
 interface CacheItem {
   data: RowItem[];
   timestamp: number;
-  type: 'movie' | 'tv' | 'record';
+  type: 'bas' | 'adv' | 'rev1' | 'rev2' | 'sp' | 'ssp' | 'record';
   hasMore: boolean;
 }
 
@@ -181,7 +162,7 @@ const useHomeStore = create<HomeState>((set, get) => ({
 
         const newItems = result.list.map((item) => ({
           ...item,
-          id: item.title,
+          id: item.id,
           source: "douban",
         })) as RowItem[];
 
