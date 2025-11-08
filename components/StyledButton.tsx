@@ -12,10 +12,13 @@ interface StyledButtonProps extends PressableProps {
   isSelected?: boolean;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
+   // 👇 新增：文本截断控制
+  numberOfLines?: number;
+  ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip';
 }
 
 export const StyledButton = forwardRef<View, StyledButtonProps>(
-  ({ children, text, variant = "default", isSelected = false, style, textStyle, ...rest }, ref) => {
+  ({ children, text, variant = "default", isSelected = false, style, textStyle,numberOfLines,ellipsizeMode, ...rest }, ref) => {
     const colorScheme = "dark";
     const colors = Colors[colorScheme];
     const [isFocused, setIsFocused] = React.useState(false);
@@ -130,6 +133,8 @@ export const StyledButton = forwardRef<View, StyledButtonProps>(
                 isSelected && (variantStyles[variant].selectedText ?? styles.selectedText),
                 textStyle,
               ]}
+              numberOfLines={numberOfLines} 
+              ellipsizeMode={ellipsizeMode}
             >
               {text}
             </ThemedText>
