@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // region: --- Interface Definitions ---
 export interface DoubanItem {
+  id: string;
   title: string;
   poster: string;
   rate?: string;
@@ -17,6 +18,7 @@ export interface VideoDetail {
   id: string;
   title: string;
   poster: string;
+  episodes: Episode[]; 
   source: string;
   source_name: string;
   desc?: string;
@@ -28,11 +30,21 @@ export interface VideoDetail {
   remarks?: string;
 }
 
+// 后端应返回的数据结构（前端对应接口）
+export interface Episode {
+  url: string;          // 必填：播放地址
+  title: string;        // 必填：剧集标题（如 "第1话：命运之始"）
+  // 可选扩展字段（未来用）：
+  // duration?: number; // 时长（秒）
+  // is_vip?: boolean;  // 是否需要会员
+  // cover?: string;    // 单集封面
+}
 export interface SearchResult {
   id: number;
   title: string;
   poster: string;
-  episodes: string[];
+  //episodes: string[];
+  episodes: Episode[]; 
   source: string;
   source_name: string;
   class?: string;
@@ -201,7 +213,7 @@ export class API {
   }
 
   async getDoubanData(
-    type: "movie" | "tv",
+    type: string,
     tag: string,
     pageSize: number = 16,
     pageStart: number = 0
