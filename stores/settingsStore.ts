@@ -31,7 +31,7 @@ interface SettingsState {
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
-  apiBaseUrl: "http://192.168.2.104:8887",
+  apiBaseUrl: "http://png.docs.wang:887",
   m3uUrl: "",
   liveStreamSources: [],
   remoteInputEnabled: false,
@@ -43,7 +43,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     sources: {},
   },
   loadSettings: async () => {
-    const DEFAULT_API_URL = "http://192.168.2.104:8887";
+    const DEFAULT_API_URL = "http://png.docs.wang:887";
     api.setBaseUrl(DEFAULT_API_URL);
     set({
       apiBaseUrl: DEFAULT_API_URL,
